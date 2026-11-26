@@ -1,0 +1,2 @@
+Violation,size,"Use a text or a QuantitativeValue with value, valueReference and unitCode or unitText as size."
+Violation,size,"Give the measured dimension as exactly one DefinedTerm or language-tagged text, at most one per language."
