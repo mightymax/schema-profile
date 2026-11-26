@@ -302,6 +302,9 @@ _:CreativeWorkShape
             ] , [
                 rdfs:label "A measurement whose dimension and unit have no known term:" ;
                 rdfs:comment "file://examples/CreativeWork-size-labels.jsonld" ;
+            ] , [
+                rdfs:label "A measured dimension expressed in multiple languages:" ;
+                rdfs:comment "file://examples/CreativeWork-size-multilingual.jsonld" ;
             ] ;
         ] ,
         [
@@ -646,11 +649,10 @@ _:QuantitativeValueShape
 
         The measurement *MUST* have a `unitCode` or a `unitText`, or both.
     """ ;
-    sh:node _:QuantitativeValueUnitShape ;
+    sh:node _:QuantitativeValueUnitShape , _:ValueReferenceCountShape ;
     sh:property
         _:ValueCountShape ,
         _:ValueFormShape ,
-        _:ValueReferenceCountShape ,
         _:ValueReferenceFormShape ,
         _:UnitCodeShape ,
         _:UnitCodeCountShape ,
@@ -692,20 +694,23 @@ _:ValueFormShape
     ) ;
     sh:message "Geef de waarde als getal of tekst zonder eenheid, zoals 74 of ca. 17."@nl, "Give the value as a number or text without the unit, such as 74 or ca. 17."@en .
 
+# Apply the alternatives to the complete set of values, so terms and literals cannot be mixed.
 _:ValueReferenceCountShape
-    sh:path schema:valueReference ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:message "Geef precies één valueReference met de gemeten afmeting, zoals hoogte."@nl, "Give exactly one valueReference with the measured dimension, such as height."@en ;
-    sh:description """
-        The dimension that is measured, such as height, width, depth or diameter.
-
-        Without it, the measurement cannot be interpreted.
-
-        The value *SHOULD* reference a term, modeled as a `DefinedTerm` (see [[#reference-terms]]),
-        for example http://vocab.getty.edu/aat/300055644 for height.
-        If no term is known, the value *MUST* be a language-tagged string, such as “hoogte”@nl.
-    """ .
+    sh:or (
+        [ sh:property [
+            sh:path schema:valueReference ;
+            sh:minCount 1 ;
+            sh:maxCount 1 ;
+            sh:node _:DefinedTermShape ;
+        ] ]
+        [ sh:property [
+            sh:path schema:valueReference ;
+            sh:minCount 1 ;
+            sh:datatype rdf:langString ;
+            sh:uniqueLang true ;
+        ] ]
+    ) ;
+    sh:message "Geef de gemeten afmeting als precies één DefinedTerm of als tekst met taalcode, maximaal één per taal."@nl, "Give the measured dimension as exactly one DefinedTerm or language-tagged text, at most one per language."@en .
 
 _:ValueReferenceFormShape
     sh:path schema:valueReference ;
@@ -713,7 +718,20 @@ _:ValueReferenceFormShape
         [ sh:node _:DefinedTermShape ]
         [ sh:datatype rdf:langString ]
     ) ;
-    sh:message "Gebruik een DefinedTerm met een naam met taalcode of een tekst met taalcode als valueReference."@nl, "Use a DefinedTerm with a language-tagged name or a language-tagged text as valueReference."@en .
+    sh:message "Gebruik een DefinedTerm met een naam met taalcode of een tekst met taalcode als valueReference."@nl, "Use a DefinedTerm with a language-tagged name or a language-tagged text as valueReference."@en ;
+    sh:description """
+        The dimension that is measured, such as height, width, depth or diameter.
+
+        Without it, the measurement cannot be interpreted.
+
+        The value *SHOULD* reference exactly one term, modeled as a `DefinedTerm` (see [[#reference-terms]]),
+        for example http://vocab.getty.edu/aat/300055644 for height.
+        If no term is known, the dimension *MUST* be given as one or more language-tagged strings,
+        with at most one string per language, such as “breedte”@nl and “width”@en.
+        A `DefinedTerm` *MUST NOT* be combined with literals or other terms.
+        Publishers are responsible for ensuring that the labels are translations of the same dimension;
+        language uniqueness alone cannot establish semantic equivalence.
+    """ .
 
 _:UnitCodeShape
     sh:path schema:unitCode ;
@@ -778,8 +796,8 @@ _:CreativeWorkSizeValueShape
         ] ,
         [
             sh:path schema:size ;
-            sh:node [ sh:or ( _:NotQuantitativeValueShape [ sh:property _:ValueReferenceCountShape ] ) ] ;
-            sh:message "Geef precies één valueReference met de gemeten afmeting, zoals hoogte."@nl, "Give exactly one valueReference with the measured dimension, such as height."@en ;
+            sh:node [ sh:or ( _:NotQuantitativeValueShape _:ValueReferenceCountShape ) ] ;
+            sh:message "Geef de gemeten afmeting als precies één DefinedTerm of als tekst met taalcode, maximaal één per taal."@nl, "Give the measured dimension as exactly one DefinedTerm or language-tagged text, at most one per language."@en ;
         ] ,
         [
             sh:path schema:size ;
