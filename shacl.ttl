@@ -297,6 +297,9 @@ _:CreativeWorkShape
                 rdfs:label "The same dimensions, additionally as machine-readable measurements:" ;
                 rdfs:comment "file://examples/CreativeWork-size-structured.jsonld" ;
             ] , [
+                rdfs:label "Measurements preserving textual values from the source:" ;
+                rdfs:comment "file://examples/CreativeWork-size-textual.jsonld" ;
+            ] , [
                 rdfs:label "A measurement whose dimension and unit have no known term:" ;
                 rdfs:comment "file://examples/CreativeWork-size-labels.jsonld" ;
             ] ;
@@ -631,10 +634,11 @@ _:QuantitativeValueShape
     sh:name "QuantitativeValue" ;
     sh:class schema:QuantitativeValue ;
     sh:description """
-        A single measurement: a number, the unit it is expressed in, and the dimension it measures.
+        A measurement: a numeric or textual value, the unit it is expressed in, and the dimension it measures.
 
-        Each measured dimension *MUST* be a separate `QuantitativeValue`;
-        a single node *MUST NOT* combine several dimensions.
+        Each measured dimension *SHOULD* be a separate `QuantitativeValue`.
+        A compound textual measurement *MAY* be preserved in a single node
+        when splitting it would require interpreting or changing the source information.
 
         The dimension *MUST NOT* be given only as the `name` of the `QuantitativeValue`:
         Schema.org leaves underspecified what that `name` denotes,
@@ -645,7 +649,7 @@ _:QuantitativeValueShape
     sh:node _:QuantitativeValueUnitShape ;
     sh:property
         _:ValueCountShape ,
-        _:ValueNumberShape ,
+        _:ValueFormShape ,
         _:ValueReferenceCountShape ,
         _:ValueReferenceFormShape ,
         _:UnitCodeShape ,
@@ -666,19 +670,27 @@ _:ValueCountShape
     sh:maxCount 1 ;
     sh:message "Geef precies één waarde."@nl, "Give exactly one value."@en ;
     sh:description """
-        The measured number.
+        The measured value.
 
-        The number *MUST NOT* carry the unit, which belongs in `unitCode` or `unitText`.
+        Numeric values (`xsd:decimal`, `xsd:double` or `xsd:integer`) *SHOULD* be used
+        wherever possible to support filtering, sorting, comparison and unit conversion.
+        Text (`xsd:string` or `rdf:langString`) *MAY* be used to preserve source information,
+        such as approximate values (“ca. 17”), bounds (“<17”), compound measurements
+        (“10 x 20”), decimal commas (“46,5”) or ranges (“17-20”).
+
+        The value *MUST NOT* carry the unit, which belongs in `unitCode` or `unitText`.
     """ .
 
-_:ValueNumberShape
+_:ValueFormShape
     sh:path schema:value ;
     sh:or (
         [ sh:datatype xsd:decimal ]
         [ sh:datatype xsd:double ]
         [ sh:datatype xsd:integer ]
+        [ sh:datatype xsd:string ]
+        [ sh:datatype rdf:langString ]
     ) ;
-    sh:message "Geef de waarde als getal zonder eenheid, zoals 74."@nl, "Give the value as a number without the unit, such as 74."@en .
+    sh:message "Geef de waarde als getal of tekst zonder eenheid, zoals 74 of ca. 17."@nl, "Give the value as a number or text without the unit, such as 74 or ca. 17."@en .
 
 _:ValueReferenceCountShape
     sh:path schema:valueReference ;
@@ -761,8 +773,8 @@ _:CreativeWorkSizeValueShape
         ] ,
         [
             sh:path schema:size ;
-            sh:node [ sh:or ( _:NotQuantitativeValueShape [ sh:property _:ValueNumberShape ] ) ] ;
-            sh:message "Geef de waarde als getal zonder eenheid, zoals 74."@nl, "Give the value as a number without the unit, such as 74."@en ;
+            sh:node [ sh:or ( _:NotQuantitativeValueShape [ sh:property _:ValueFormShape ] ) ] ;
+            sh:message "Geef de waarde als getal of tekst zonder eenheid, zoals 74 of ca. 17."@nl, "Give the value as a number or text without the unit, such as 74 or ca. 17."@en ;
         ] ,
         [
             sh:path schema:size ;
