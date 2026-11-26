@@ -1,2 +1,1 @@
 Violation,description,"Give the description a language tag, such as nl or en."
-Warning,associatedMedia,At least one renderable MediaObject is required when media is available.
